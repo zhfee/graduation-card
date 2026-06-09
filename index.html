@@ -1,0 +1,1289 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>高考结束 · 青春无悔 · 未来可期</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Noto+Sans+SC:wght@300;400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --gold: #F6A623;
+      --gold-light: #FFD700;
+      --night-blue: #1A1A2E;
+      --night-deep: #0F0F1A;
+      --pink: #FF6B9D;
+      --star-white: #F0E6D3;
+      --accent-cyan: #00D4FF;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html {
+      scroll-behavior: smooth;
+      overflow-x: hidden;
+    }
+
+    body {
+      font-family: 'Noto Sans SC', sans-serif;
+      background: var(--night-deep);
+      color: var(--star-white);
+      overflow-x: hidden;
+      cursor: default;
+    }
+
+    /* ===== 全局粒子画布 ===== */
+    #particle-canvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 100;
+    }
+
+    /* ===== 鼠标光晕 ===== */
+    .cursor-glow {
+      position: fixed;
+      width: 200px; height: 200px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(246,166,35,0.15) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 99;
+      transform: translate(-50%, -50%);
+      transition: opacity 0.3s;
+    }
+
+    /* ===== 开场动画 ===== */
+    .opening-overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: var(--night-deep);
+      z-index: 200;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 1s ease, visibility 1s ease;
+    }
+
+    .opening-overlay.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .opening-title {
+      font-family: 'ZCOOL KuaiLe', cursive;
+      font-size: clamp(2rem, 6vw, 4.5rem);
+      text-align: center;
+      line-height: 1.5;
+    }
+
+    .opening-title .char {
+      display: inline-block;
+      opacity: 0;
+      transform: translateY(40px) scale(0.5);
+      animation: charIn 0.6s forwards;
+    }
+
+    .opening-title .line2 {
+      display: block;
+      background: linear-gradient(90deg, var(--gold), var(--pink), var(--accent-cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .opening-title .line1 {
+      color: var(--gold-light);
+    }
+
+    @keyframes charIn {
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .opening-subtitle {
+      margin-top: 2rem;
+      font-size: clamp(0.9rem, 2vw, 1.3rem);
+      color: rgba(240,230,211,0.6);
+      opacity: 0;
+      animation: fadeIn 1s 2.5s forwards;
+    }
+
+    .opening-enter-btn {
+      margin-top: 3rem;
+      padding: 14px 48px;
+      border: 2px solid var(--gold);
+      border-radius: 50px;
+      background: transparent;
+      color: var(--gold);
+      font-family: 'ZCOOL KuaiLe', cursive;
+      font-size: 1.2rem;
+      cursor: pointer;
+      opacity: 0;
+      animation: fadeIn 0.8s 3.2s forwards;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .opening-enter-btn:hover {
+      background: var(--gold);
+      color: var(--night-deep);
+      transform: scale(1.05);
+      box-shadow: 0 0 30px rgba(246,166,35,0.4);
+    }
+
+    .opening-enter-btn::after {
+      content: '';
+      position: absolute;
+      top: 50%; left: 50%;
+      width: 0; height: 0;
+      background: rgba(255,255,255,0.2);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      transition: width 0.5s, height 0.5s;
+    }
+
+    .opening-enter-btn:hover::after {
+      width: 300px; height: 300px;
+    }
+
+    @keyframes fadeIn {
+      to { opacity: 1; }
+    }
+
+    /* ===== 星空背景 ===== */
+    .starfield {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: -1;
+    }
+
+    .star {
+      position: absolute;
+      border-radius: 50%;
+      background: white;
+      animation: twinkle var(--duration) ease-in-out infinite alternate;
+    }
+
+    @keyframes twinkle {
+      from { opacity: var(--min-opacity); transform: scale(1); }
+      to { opacity: 1; transform: scale(1.3); }
+    }
+
+    /* ===== 主内容区 ===== */
+    .main-content {
+      opacity: 0;
+      transition: opacity 1s ease;
+      min-height: 100vh;
+    }
+
+    .main-content.visible {
+      opacity: 1;
+    }
+
+    /* ===== 照片画廊 ===== */
+    .gallery-section {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 4rem 1rem;
+      position: relative;
+    }
+
+    .section-title {
+      font-family: 'ZCOOL KuaiLe', cursive;
+      font-size: clamp(1.5rem, 4vw, 2.5rem);
+      color: var(--gold-light);
+      margin-bottom: 2rem;
+      text-align: center;
+      opacity: 0;
+      transform: translateY(30px);
+      transition: all 0.8s ease;
+    }
+
+    .section-title.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .gallery-container {
+      position: relative;
+      width: min(90vw, 600px);
+      height: min(70vw, 450px);
+      perspective: 1200px;
+    }
+
+    .gallery-slide {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 40px rgba(246,166,35,0.1);
+      transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.8s ease;
+      backface-visibility: hidden;
+    }
+
+    .gallery-slide img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      transition: transform 0.5s ease;
+    }
+
+    .gallery-slide:hover img {
+      transform: scale(1.05);
+    }
+
+    .gallery-slide .caption {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      padding: 1.5rem;
+      background: linear-gradient(transparent, rgba(0,0,0,0.8));
+      font-size: 0.95rem;
+      color: var(--star-white);
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.4s ease;
+    }
+
+    .gallery-slide:hover .caption {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .gallery-slide.active {
+      transform: rotateY(0deg) scale(1);
+      opacity: 1;
+      z-index: 2;
+    }
+
+    .gallery-slide.prev {
+      transform: rotateY(45deg) translateX(-60%) scale(0.85);
+      opacity: 0.4;
+      z-index: 1;
+    }
+
+    .gallery-slide.next {
+      transform: rotateY(-45deg) translateX(60%) scale(0.85);
+      opacity: 0.4;
+      z-index: 1;
+    }
+
+    .gallery-slide.hidden-slide {
+      transform: rotateY(90deg) scale(0.6);
+      opacity: 0;
+      z-index: 0;
+    }
+
+    .gallery-nav {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+
+    .gallery-btn {
+      width: 48px; height: 48px;
+      border-radius: 50%;
+      border: 2px solid var(--gold);
+      background: rgba(246,166,35,0.1);
+      color: var(--gold);
+      font-size: 1.2rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .gallery-btn:hover {
+      background: var(--gold);
+      color: var(--night-deep);
+      transform: scale(1.1);
+      box-shadow: 0 0 20px rgba(246,166,35,0.3);
+    }
+
+    .gallery-dots {
+      display: flex;
+      gap: 10px;
+    }
+
+    .gallery-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: rgba(246,166,35,0.3);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .gallery-dot.active {
+      background: var(--gold);
+      transform: scale(1.3);
+      box-shadow: 0 0 10px rgba(246,166,35,0.5);
+    }
+
+    /* ===== 祝福文字区 ===== */
+    .blessing-section {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 4rem 2rem;
+      position: relative;
+    }
+
+    .blessing-card {
+      background: linear-gradient(135deg, rgba(26,26,46,0.9), rgba(15,15,26,0.95));
+      border: 1px solid rgba(246,166,35,0.2);
+      border-radius: 20px;
+      padding: 3rem;
+      max-width: 700px;
+      width: 90%;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .blessing-card::before {
+      content: '';
+      position: absolute;
+      top: -50%; left: -50%;
+      width: 200%; height: 200%;
+      background: conic-gradient(from 0deg, transparent, rgba(246,166,35,0.05), transparent, rgba(255,107,157,0.05), transparent);
+      animation: rotateBg 10s linear infinite;
+    }
+
+    @keyframes rotateBg {
+      to { transform: rotate(360deg); }
+    }
+
+    .blessing-text {
+      position: relative;
+      z-index: 1;
+    }
+
+    .blessing-line {
+      font-size: clamp(1rem, 2.5vw, 1.4rem);
+      line-height: 2.2;
+      color: var(--star-white);
+      opacity: 0;
+      transform: translateX(-20px);
+      transition: all 0.6s ease;
+      margin-bottom: 0.5rem;
+    }
+
+    .blessing-line.visible {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .blessing-line .highlight {
+      color: var(--gold);
+      font-weight: 700;
+    }
+
+    .blessing-line .pink {
+      color: var(--pink);
+    }
+
+    .blessing-line .cyan {
+      color: var(--accent-cyan);
+    }
+
+    .blessing-author {
+      text-align: right;
+      margin-top: 2rem;
+      font-size: 0.95rem;
+      color: rgba(240,230,211,0.5);
+      opacity: 0;
+      transition: opacity 1s ease 1s;
+    }
+
+    .blessing-author.visible {
+      opacity: 1;
+    }
+
+    /* ===== 互动提示 ===== */
+    .interact-hint {
+      position: fixed;
+      bottom: 100px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.85rem;
+      color: rgba(240,230,211,0.4);
+      z-index: 50;
+      animation: pulse 2s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.4; }
+      50% { opacity: 0.8; }
+    }
+
+    /* ===== 音乐播放器 ===== */
+    .music-player {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      z-index: 150;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .music-btn {
+      width: 56px; height: 56px;
+      border-radius: 50%;
+      border: 2px solid var(--gold);
+      background: rgba(26,26,46,0.9);
+      color: var(--gold);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .music-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 25px rgba(246,166,35,0.4);
+    }
+
+    .music-btn.playing {
+      animation: discSpin 3s linear infinite;
+      border-color: var(--pink);
+      color: var(--pink);
+    }
+
+    @keyframes discSpin {
+      to { transform: rotate(360deg); }
+    }
+
+    .music-btn .disc-inner {
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      border: 2px solid currentColor;
+      position: relative;
+    }
+
+    .music-btn .disc-inner::after {
+      content: '';
+      position: absolute;
+      top: 50%; left: 50%;
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+      transform: translate(-50%, -50%);
+    }
+
+    .music-label {
+      font-size: 0.7rem;
+      color: rgba(240,230,211,0.5);
+    }
+
+    /* ===== 音频可视化 ===== */
+    .audio-visualizer {
+      position: fixed;
+      bottom: 95px;
+      right: 20px;
+      display: flex;
+      align-items: flex-end;
+      gap: 3px;
+      height: 40px;
+      z-index: 149;
+      opacity: 0;
+      transition: opacity 0.5s;
+    }
+
+    .audio-visualizer.active {
+      opacity: 1;
+    }
+
+    .viz-bar {
+      width: 4px;
+      background: linear-gradient(to top, var(--gold), var(--pink));
+      border-radius: 2px;
+      transition: height 0.1s ease;
+    }
+
+    /* ===== 分享按钮 ===== */
+    .share-section {
+      padding: 3rem 1rem 6rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .share-btn {
+      padding: 14px 40px;
+      border-radius: 50px;
+      border: none;
+      background: linear-gradient(135deg, var(--gold), var(--pink));
+      color: var(--night-deep);
+      font-family: 'ZCOOL KuaiLe', cursive;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .share-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 8px 30px rgba(246,166,35,0.4);
+    }
+
+    .share-btn:active {
+      transform: scale(0.98);
+    }
+
+    .share-toast {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.8);
+      background: rgba(246,166,35,0.95);
+      color: var(--night-deep);
+      padding: 12px 28px;
+      border-radius: 30px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      z-index: 300;
+      opacity: 0;
+      transition: all 0.4s ease;
+      pointer-events: none;
+    }
+
+    .share-toast.show {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    /* ===== 烟花点击特效 ===== */
+    .firework {
+      position: fixed;
+      pointer-events: none;
+      z-index: 100;
+    }
+
+    .firework-particle {
+      position: absolute;
+      border-radius: 50%;
+      animation: fireworkBurst 1s ease-out forwards;
+    }
+
+    @keyframes fireworkBurst {
+      0% { opacity: 1; transform: translate(0, 0) scale(1); }
+      100% { opacity: 0; transform: translate(var(--tx), var(--ty)) scale(0); }
+    }
+
+    /* ===== 纸屑飘落 ===== */
+    .confetti {
+      position: fixed;
+      top: -10px;
+      z-index: 101;
+      pointer-events: none;
+      animation: confettiFall var(--fall-duration) linear forwards;
+    }
+
+    @keyframes confettiFall {
+      to { top: 110vh; transform: rotate(var(--rotate-end)); }
+    }
+
+    /* ===== 底部装饰 ===== */
+    .footer-deco {
+      text-align: center;
+      padding: 2rem;
+      font-size: 0.8rem;
+      color: rgba(240,230,211,0.3);
+    }
+
+    /* ===== 响应式 ===== */
+    @media (max-width: 768px) {
+      .gallery-container {
+        width: 92vw;
+        height: 65vw;
+      }
+
+      .blessing-card {
+        padding: 2rem 1.5rem;
+      }
+
+      .music-player {
+        bottom: 20px;
+        right: 20px;
+      }
+
+      .music-btn {
+        width: 48px;
+        height: 48px;
+      }
+
+      .gallery-btn {
+        width: 40px;
+        height: 40px;
+      }
+
+      .audio-visualizer {
+        bottom: 80px;
+        right: 12px;
+      }
+    }
+
+    /* ===== 滚动条美化 ===== */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--night-deep); }
+    ::-webkit-scrollbar-thumb { background: rgba(246,166,35,0.3); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(246,166,35,0.5); }
+
+    /* ===== 图片放大预览 ===== */
+    .lightbox {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.9);
+      z-index: 250;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.4s ease;
+      cursor: zoom-out;
+    }
+
+    .lightbox.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .lightbox img {
+      max-width: 90vw;
+      max-height: 90vh;
+      object-fit: contain;
+      border-radius: 8px;
+      transform: scale(0.8);
+      transition: transform 0.4s ease;
+    }
+
+    .lightbox.active img {
+      transform: scale(1);
+    }
+
+    .lightbox-close {
+      position: absolute;
+      top: 20px; right: 30px;
+      font-size: 2rem;
+      color: white;
+      cursor: pointer;
+      transition: transform 0.3s;
+    }
+
+    .lightbox-close:hover {
+      transform: rotate(90deg);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 星空背景 -->
+  <div class="starfield" id="starfield"></div>
+
+  <!-- 粒子画布 -->
+  <canvas id="particle-canvas"></canvas>
+
+  <!-- 鼠标光晕 -->
+  <div class="cursor-glow" id="cursorGlow"></div>
+
+  <!-- 开场动画 -->
+  <div class="opening-overlay" id="openingOverlay">
+    <div class="opening-title" id="openingTitle"></div>
+    <p class="opening-subtitle">点击屏幕任意位置，绽放属于你的烟花</p>
+    <button class="opening-enter-btn" id="enterBtn">开启青春回忆录</button>
+  </div>
+
+  <!-- 主内容 -->
+  <div class="main-content" id="mainContent">
+
+    <!-- 照片画廊 -->
+    <section class="gallery-section">
+      <h2 class="section-title" data-animate>那些闪闪发光的日子</h2>
+      <div class="gallery-container" id="galleryContainer"></div>
+      <div class="gallery-nav">
+        <button class="gallery-btn" id="prevBtn">&#10094;</button>
+        <div class="gallery-dots" id="galleryDots"></div>
+        <button class="gallery-btn" id="nextBtn">&#10095;</button>
+      </div>
+    </section>
+
+    <!-- 祝福文字 -->
+    <section class="blessing-section">
+      <h2 class="section-title" data-animate>写给未来的你</h2>
+      <div class="blessing-card">
+        <div class="blessing-text" id="blessingText"></div>
+        <div class="blessing-author" id="blessingAuthor">—— 致每一个勇敢追梦的你</div>
+      </div>
+    </section>
+
+    <!-- 分享 -->
+    <section class="share-section">
+      <button class="share-btn" id="shareBtn">分享给好友</button>
+    </section>
+
+    <div class="footer-deco">青春不散场 · 未来皆可期</div>
+  </div>
+
+  <!-- 音乐播放器 -->
+  <div class="music-player">
+    <div class="audio-visualizer" id="audioVisualizer"></div>
+    <button class="music-btn" id="musicBtn" title="播放/暂停音乐">
+      <div class="disc-inner"></div>
+    </button>
+    <span class="music-label" id="musicLabel">音乐</span>
+  </div>
+
+  <!-- 互动提示 -->
+  <div class="interact-hint" id="interactHint">点击屏幕放烟花 ✨</div>
+
+  <!-- 图片放大 -->
+  <div class="lightbox" id="lightbox">
+    <span class="lightbox-close">&times;</span>
+    <img id="lightboxImg" src="" alt="">
+  </div>
+
+  <!-- 分享提示 -->
+  <div class="share-toast" id="shareToast">链接已复制到剪贴板！</div>
+
+  <script>
+    // ===== 配置数据 =====
+    const PHOTOS = [
+      {
+        src: '微信图片_20260609172001_636_7.jpg',
+        caption: '那些年，我们一起走过的青春'
+      },
+      {
+        src: '微信图片_20260609172003_637_7.jpg',
+        caption: '每一帧都是最珍贵的记忆'
+      },
+      {
+        src: '微信图片_20260609172004_638_7.jpg',
+        caption: '时光不老，我们不散'
+      },
+      {
+        src: '微信图片_20260609172005_639_7.jpg',
+        caption: '感谢有你，一路相伴'
+      },
+      {
+        src: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=golden%20list%20of%20successful%20candidates%20jinbangtiming%20Chinese%20calligraphy%20celebration%20red%20and%20gold%20festive%20congratulations%20scroll&image_size=landscape_16_9',
+        caption: '金榜题名，前程似锦！'
+      }
+    ];
+
+    const BLESSINGS = [
+      { text: '三年寒窗，<span class="highlight">一千多个日夜</span>的坚持', delay: 0 },
+      { text: '那些挑灯夜读的晚上，终将化作<span class="pink">星光</span>', delay: 300 },
+      { text: '那些咬牙坚持的瞬间，终将变成<span class="highlight">勋章</span>', delay: 600 },
+      { text: '高考不是终点，而是<span class="cyan">新旅程的起点</span>', delay: 900 },
+      { text: '愿你带着<span class="highlight">青春的勇气</span>，奔赴山海', delay: 1200 },
+      { text: '愿你心中有<span class="pink">光</span>，脚下有<span class="cyan">路</span>', delay: 1500 },
+      { text: '<span class="highlight">青春无悔，未来可期！</span>', delay: 1800 }
+    ];
+
+    // ===== 星空背景 =====
+    function createStarfield() {
+      const container = document.getElementById('starfield');
+      const count = Math.min(200, Math.floor(window.innerWidth * window.innerHeight / 5000));
+      for (let i = 0; i < count; i++) {
+        const star = document.createElement('div');
+        star.className = 'star';
+        const size = Math.random() * 3 + 1;
+        star.style.cssText = `
+          left: ${Math.random() * 100}%;
+          top: ${Math.random() * 100}%;
+          width: ${size}px;
+          height: ${size}px;
+          --duration: ${Math.random() * 3 + 2}s;
+          --min-opacity: ${Math.random() * 0.3 + 0.1};
+          animation-delay: ${Math.random() * 3}s;
+        `;
+        container.appendChild(star);
+      }
+    }
+
+    // ===== 开场动画 =====
+    function initOpening() {
+      const titleEl = document.getElementById('openingTitle');
+      const lines = [
+        { text: '高考结束', cls: 'line1' },
+        { text: '青春无悔 · 未来可期', cls: 'line2' }
+      ];
+
+      let charIndex = 0;
+      lines.forEach(line => {
+        const span = document.createElement('span');
+        span.className = line.cls;
+        for (const char of line.text) {
+          const charSpan = document.createElement('span');
+          charSpan.className = 'char';
+          charSpan.textContent = char;
+          charSpan.style.animationDelay = `${charIndex * 0.08 + 0.3}s`;
+          span.appendChild(charSpan);
+          charIndex++;
+        }
+        titleEl.appendChild(span);
+      });
+
+      document.getElementById('enterBtn').addEventListener('click', enterMain);
+    }
+
+    function enterMain() {
+      document.getElementById('openingOverlay').classList.add('hidden');
+      document.getElementById('mainContent').classList.add('visible');
+      launchConfetti(30);
+      // 滚动监听
+      setTimeout(initScrollObserver, 500);
+    }
+
+    // ===== 照片画廊 =====
+    let currentSlide = 0;
+    let autoPlayTimer = null;
+
+    function initGallery() {
+      const container = document.getElementById('galleryContainer');
+      const dotsContainer = document.getElementById('galleryDots');
+
+      PHOTOS.forEach((photo, i) => {
+        const slide = document.createElement('div');
+        slide.className = 'gallery-slide hidden-slide';
+        slide.innerHTML = `
+          <img src="${photo.src}" alt="${photo.caption}" loading="lazy">
+          <div class="caption">${photo.caption}</div>
+        `;
+        slide.addEventListener('click', () => openLightbox(photo.src));
+        container.appendChild(slide);
+
+        const dot = document.createElement('div');
+        dot.className = 'gallery-dot' + (i === 0 ? ' active' : '');
+        dot.addEventListener('click', () => goToSlide(i));
+        dotsContainer.appendChild(dot);
+      });
+
+      document.getElementById('prevBtn').addEventListener('click', () => goToSlide(currentSlide - 1));
+      document.getElementById('nextBtn').addEventListener('click', () => goToSlide(currentSlide + 1));
+
+      // 触摸滑动
+      let touchStartX = 0;
+      container.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+      container.addEventListener('touchend', e => {
+        const diff = e.changedTouches[0].clientX - touchStartX;
+        if (Math.abs(diff) > 50) {
+          diff > 0 ? goToSlide(currentSlide - 1) : goToSlide(currentSlide + 1);
+        }
+      }, { passive: true });
+
+      goToSlide(0);
+      startAutoPlay();
+    }
+
+    function goToSlide(index) {
+      const slides = document.querySelectorAll('.gallery-slide');
+      const dots = document.querySelectorAll('.gallery-dot');
+      const total = slides.length;
+
+      currentSlide = ((index % total) + total) % total;
+
+      slides.forEach((slide, i) => {
+        slide.className = 'gallery-slide';
+        if (i === currentSlide) slide.classList.add('active');
+        else if (i === (currentSlide - 1 + total) % total) slide.classList.add('prev');
+        else if (i === (currentSlide + 1) % total) slide.classList.add('next');
+        else slide.classList.add('hidden-slide');
+      });
+
+      dots.forEach((dot, i) => {
+        dot.classList.toggle('active', i === currentSlide);
+      });
+
+      resetAutoPlay();
+    }
+
+    function startAutoPlay() {
+      autoPlayTimer = setInterval(() => goToSlide(currentSlide + 1), 5000);
+    }
+
+    function resetAutoPlay() {
+      clearInterval(autoPlayTimer);
+      startAutoPlay();
+    }
+
+    // ===== 图片放大 =====
+    function openLightbox(src) {
+      const lb = document.getElementById('lightbox');
+      document.getElementById('lightboxImg').src = src;
+      lb.classList.add('active');
+    }
+
+    document.getElementById('lightbox').addEventListener('click', function(e) {
+      if (e.target === this || e.target.classList.contains('lightbox-close')) {
+        this.classList.remove('active');
+      }
+    });
+
+    // ===== 祝福文字 =====
+    function initBlessings() {
+      const container = document.getElementById('blessingText');
+      BLESSINGS.forEach(b => {
+        const p = document.createElement('p');
+        p.className = 'blessing-line';
+        p.innerHTML = b.text;
+        container.appendChild(p);
+      });
+    }
+
+    // ===== 滚动动画 =====
+    function initScrollObserver() {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+          }
+        });
+      }, { threshold: 0.2 });
+
+      document.querySelectorAll('[data-animate]').forEach(el => observer.observe(el));
+
+      // 祝福文字逐行显示
+      const blessingObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const lines = entry.target.querySelectorAll('.blessing-line');
+            lines.forEach((line, i) => {
+              setTimeout(() => line.classList.add('visible'), BLESSINGS[i].delay);
+            });
+            setTimeout(() => document.getElementById('blessingAuthor').classList.add('visible'), 2500);
+            blessingObserver.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.3 });
+
+      const blessingText = document.getElementById('blessingText');
+      if (blessingText) blessingObserver.observe(blessingText);
+
+      // 标题动画
+      document.querySelectorAll('.section-title').forEach(el => observer.observe(el));
+    }
+
+    // ===== 音乐播放器 =====
+    let isPlaying = false;
+    let audioCtx = null;
+    let analyser = null;
+    let audioSource = null;
+    let audioElement = null;
+
+    function initMusicPlayer() {
+      const btn = document.getElementById('musicBtn');
+      const vizContainer = document.getElementById('audioVisualizer');
+
+      // 创建可视化条
+      for (let i = 0; i < 12; i++) {
+        const bar = document.createElement('div');
+        bar.className = 'viz-bar';
+        bar.style.height = '4px';
+        vizContainer.appendChild(bar);
+      }
+
+      btn.addEventListener('click', toggleMusic);
+    }
+
+    function toggleMusic() {
+      const btn = document.getElementById('musicBtn');
+      const label = document.getElementById('musicLabel');
+      const viz = document.getElementById('audioVisualizer');
+
+      if (!audioElement) {
+        // 使用内置音频生成简单旋律
+        audioElement = createAudioElement();
+      }
+
+      if (isPlaying) {
+        audioElement.pause();
+        btn.classList.remove('playing');
+        label.textContent = '音乐';
+        viz.classList.remove('active');
+        isPlaying = false;
+      } else {
+        audioElement.play().then(() => {
+          btn.classList.add('playing');
+          label.textContent = '暂停';
+          viz.classList.add('active');
+          isPlaying = true;
+          initAudioVisualizer();
+        }).catch(() => {
+          // 浏览器可能阻止自动播放
+          label.textContent = '点击播放';
+        });
+      }
+    }
+
+    function createAudioElement() {
+      const audio = document.createElement('audio');
+      audio.src = '纪念…再见了毕业季..mp3';
+      audio.loop = true;
+      audio.volume = 0.5;
+      return audio;
+    }
+
+    function initAudioVisualizer() {
+      if (analyser) return;
+      try {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        analyser = audioCtx.createAnalyser();
+        analyser.fftSize = 64;
+        const source = audioCtx.createMediaElementSource(audioElement);
+        source.connect(analyser);
+        analyser.connect(audioCtx.destination);
+
+        const bars = document.querySelectorAll('.viz-bar');
+        const bufferLength = analyser.frequencyBinCount;
+        const dataArray = new Uint8Array(bufferLength);
+
+        function updateViz() {
+          if (!isPlaying) return;
+          analyser.getByteFrequencyData(dataArray);
+          bars.forEach((bar, i) => {
+            const value = dataArray[i + 2] || 0;
+            const height = Math.max(4, (value / 255) * 40);
+            bar.style.height = height + 'px';
+          });
+          requestAnimationFrame(updateViz);
+        }
+        updateViz();
+      } catch(e) {
+        // 可视化失败不影响播放
+      }
+    }
+
+    // ===== 粒子特效画布 =====
+    const particles = [];
+
+    function initParticleCanvas() {
+      const canvas = document.getElementById('particle-canvas');
+      const ctx = canvas.getContext('2d');
+
+      function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }
+      resize();
+      window.addEventListener('resize', resize);
+
+      function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        for (let i = particles.length - 1; i >= 0; i--) {
+          const p = particles[i];
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vy += p.gravity || 0;
+          p.life -= p.decay;
+          p.size *= p.shrink || 1;
+
+          if (p.life <= 0 || p.size < 0.5) {
+            particles.splice(i, 1);
+            continue;
+          }
+
+          ctx.save();
+          ctx.globalAlpha = p.life;
+          ctx.fillStyle = p.color;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, Math.max(0.5, p.size), 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        }
+        requestAnimationFrame(animate);
+      }
+      animate();
+    }
+
+    // ===== 烟花特效 =====
+    function createFirework(x, y) {
+      const colors = ['#F6A623', '#FF6B9D', '#00D4FF', '#FFD700', '#FF4444', '#44FF44', '#FF8C00'];
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      const count = 30 + Math.floor(Math.random() * 20);
+
+      for (let i = 0; i < count; i++) {
+        const angle = (Math.PI * 2 / count) * i + Math.random() * 0.3;
+        const speed = 2 + Math.random() * 4;
+        particles.push({
+          x, y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          size: 2 + Math.random() * 3,
+          color,
+          life: 1,
+          decay: 0.015 + Math.random() * 0.01,
+          gravity: 0.05,
+          shrink: 0.98
+        });
+      }
+
+      // 内圈小粒子
+      for (let i = 0; i < 15; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = 1 + Math.random() * 2;
+        particles.push({
+          x, y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          size: 1 + Math.random() * 2,
+          color: '#FFD700',
+          life: 1,
+          decay: 0.02,
+          gravity: 0.03,
+          shrink: 0.96
+        });
+      }
+    }
+
+    // ===== 纸屑飘落 =====
+    function launchConfetti(count) {
+      const colors = ['#F6A623', '#FF6B9D', '#00D4FF', '#FFD700', '#FF4444'];
+      for (let i = 0; i < count; i++) {
+        setTimeout(() => {
+          const confetti = document.createElement('div');
+          confetti.className = 'confetti';
+          const size = 6 + Math.random() * 8;
+          const color = colors[Math.floor(Math.random() * colors.length)];
+          const duration = 3 + Math.random() * 4;
+          const rotateEnd = Math.random() * 720 - 360;
+          const left = Math.random() * 100;
+
+          confetti.style.cssText = `
+            left: ${left}%;
+            width: ${size}px;
+            height: ${size * 0.6}px;
+            background: ${color};
+            border-radius: 2px;
+            --fall-duration: ${duration}s;
+            --rotate-end: ${rotateEnd}deg;
+            animation-delay: ${Math.random() * 0.5}s;
+          `;
+          document.body.appendChild(confetti);
+          setTimeout(() => confetti.remove(), (duration + 1) * 1000);
+        }, i * 80);
+      }
+    }
+
+    // ===== 鼠标光晕 =====
+    function initCursorGlow() {
+      const glow = document.getElementById('cursorGlow');
+      let mouseX = 0, mouseY = 0;
+      let glowX = 0, glowY = 0;
+
+      document.addEventListener('mousemove', e => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+      });
+
+      function updateGlow() {
+        glowX += (mouseX - glowX) * 0.1;
+        glowY += (mouseY - glowY) * 0.1;
+        glow.style.left = glowX + 'px';
+        glow.style.top = glowY + 'px';
+
+        // 鼠标轨迹粒子
+        if (Math.random() > 0.7) {
+          particles.push({
+            x: mouseX,
+            y: mouseY,
+            vx: (Math.random() - 0.5) * 1,
+            vy: (Math.random() - 0.5) * 1,
+            size: 1 + Math.random() * 2,
+            color: Math.random() > 0.5 ? '#F6A623' : '#FFD700',
+            life: 0.8,
+            decay: 0.02,
+            gravity: 0,
+            shrink: 0.97
+          });
+        }
+
+        requestAnimationFrame(updateGlow);
+      }
+      updateGlow();
+    }
+
+    // ===== 点击烟花 =====
+    function initClickFirework() {
+      document.addEventListener('click', e => {
+        // 不在按钮等交互元素上触发
+        if (e.target.closest('button') || e.target.closest('.gallery-slide') || e.target.closest('.lightbox')) return;
+        createFirework(e.clientX, e.clientY);
+      });
+    }
+
+    // ===== 分享功能 =====
+    function initShare() {
+      document.getElementById('shareBtn').addEventListener('click', () => {
+        const url = window.location.href;
+        if (navigator.clipboard) {
+          navigator.clipboard.writeText(url).then(() => showShareToast());
+        } else {
+          const input = document.createElement('input');
+          input.value = url;
+          document.body.appendChild(input);
+          input.select();
+          document.execCommand('copy');
+          document.body.removeChild(input);
+          showShareToast();
+        }
+      });
+    }
+
+    function showShareToast() {
+      const toast = document.getElementById('shareToast');
+      toast.classList.add('show');
+      launchConfetti(15);
+      setTimeout(() => toast.classList.remove('show'), 2000);
+    }
+
+    // ===== 键盘导航 =====
+    function initKeyboard() {
+      document.addEventListener('keydown', e => {
+        if (e.key === 'ArrowLeft') goToSlide(currentSlide - 1);
+        if (e.key === 'ArrowRight') goToSlide(currentSlide + 1);
+        if (e.key === 'Escape') {
+          document.getElementById('lightbox').classList.remove('active');
+        }
+        if (e.key === 'm' || e.key === 'M') toggleMusic();
+      });
+    }
+
+    // ===== 初始化 =====
+    function init() {
+      createStarfield();
+      initOpening();
+      initGallery();
+      initBlessings();
+      initMusicPlayer();
+      initParticleCanvas();
+      initCursorGlow();
+      initClickFirework();
+      initShare();
+      initKeyboard();
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
